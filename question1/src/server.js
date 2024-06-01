@@ -16,13 +16,21 @@ app.use(express.json());
 
 const productCache = {};
 
-app.get("AMZ/categories/:categoryname/products", async (req, res) => {
+app.get("/categories/:categoryname/products", async (req, res) => {
   const { categoryname } = req.params;
   const { top , minPrice , maxPrice , page } = req.query;
 
   try {
-    const companies = ['AMZ', 'FLP', 'SNP', 'MYN', 'AZP'];
-    const requests = companies.map(company => fetchProductsFromCompany(company, categoryname, top, minPrice, maxPrice));
+    const companies = ['AMZ', 'FLP', 'SNP', 'MYN', 'AZO'];
+    const authToken = process.env.AUTH_TOKEN;
+
+    if (!authToken) {
+      return res.status(500).json({ error: 'Missing AUTH_TOKEN' });
+    }
+
+    const requests = companies.map(company => 
+      fetchProductsFromCompany(company, categoryname, top, minPrice, maxPrice, authToken)
+    );
 
     const responses = await Promise.all(requests);
     const products = responses.flat();
